@@ -17,13 +17,13 @@
 
   tasks:
 
-    # OS Bilgisi
+    # OS bilgisi
     - name: OS bilgisini göster
       ansible.builtin.debug:
         msg: "OS: {{ ansible_facts.distribution }} {{ ansible_facts.distribution_version }}"
 
-    # Hangi repo .deb dosyası kullanılacak?
-    - name: Uygun repo URL’sini belirle
+    # Doğru repo URL'sini seç
+    - name: Uygun repo URL'sini belirle
       ansible.builtin.set_fact:
         zabbix_repo_deb: >-
           {% if ansible_facts.distribution_version is search("^20\.04") %}
@@ -34,46 +34,42 @@
           {{ zabbix_repo_deb_ubuntu20 }}
           {% endif %}
 
-    # Paket listesi
+    # Kurulu paketleri oku
     - name: Kurulu paketleri oku
       ansible.builtin.package_facts:
         manager: auto
 
+    # Zaten kurulu ise bilgi ver
     - name: Agent2 zaten kurulu mesajı
       ansible.builtin.debug:
         msg: "Zabbix Agent2 zaten kurulu!"
       when: zabbix_agent_pkg in ansible_facts.packages
 
-   - name: Agent2 yoksa repo + kurulum yap
-  block:
+    # Agent yoksa kur
+    - name: Agent2 yoksa repo + kurulum yap
+      block:
 
-    - name: Zabbix repo .deb indir
-      ansible.builtin.get_url:
-        url: "{{ zabbix_repo_deb }}"
-        dest: "/tmp/zabbix-release.deb"
-        mode: "0644"
+        - name: Zabbix repo .deb indir
+          ansible.builtin.get_url:
+            url: "{{ zabbix_repo_deb }}"
+            dest: "/tmp/zabbix-release.deb"
+            mode: "0644"
+
+        - name: Repo paketini dpkg ile kur
+          ansible.builtin.command: "dpkg -i /tmp/zabbix-release.deb"
+
+        - name: apt-get update
+          ansible.builtin.apt:
+            update_cache: yes
+
+        - name: Zabbix Agent2 paketini kur
+          ansible.builtin.package:
+            name: "{{ zabbix_agent_pkg }}"
+            state: present
+
       when: zabbix_agent_pkg not in ansible_facts.packages
 
-    - name: Repo paketini dpkg ile kur
-      ansible.builtin.command: "dpkg -i /tmp/zabbix-release.deb"
-      when: zabbix_agent_pkg not in ansible_facts.packages
-
-    - name: apt-get update
-      ansible.builtin.apt:
-        update_cache: yes
-      when: zabbix_agent_pkg not in ansible_facts.packages
-
-    - name: Zabbix Agent2 paketini kur
-      ansible.builtin.package:
-        name: "{{ zabbix_agent_pkg }}"
-        state: present
-      when: zabbix_agent_pkg not in ansible_facts.packages
-
-  when: zabbix_agent_pkg not in ansible_facts.packages
-
-
-
-    # 5) Hazır conf dosyasını kopyala
+    # Konfigürasyon dosyasını kopyala
     - name: zabbix_agent2.conf’ı kopyala
       ansible.builtin.copy:
         src: "zabbix_agent2.conf"
@@ -83,18 +79,18 @@
         mode: "0644"
       # YORUM: burası düzenlenecek
 
-    # 6) Servisi yeniden başlat
+    # Servisi başlat
     - name: Servisi enable + restart et
       ansible.builtin.systemd:
         name: "{{ zabbix_agent_service }}"
         enabled: yes
         state: restarted
 
-    # 7) Service bilgilerini al
+    # Servis bilgilerini oku
     - name: Servis bilgilerini oku
       ansible.builtin.service_facts:
 
-    # 8) Servis RUNNING kontrolü
+    # Servis running mi kontrol et
     - name: Servis çalışıyor mu kontrol et
       ansible.builtin.assert:
         that:
