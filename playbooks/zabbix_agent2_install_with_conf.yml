@@ -22,7 +22,7 @@
       ansible.builtin.debug:
         msg: "OS: {{ ansible_facts.distribution }} {{ ansible_facts.distribution_version }}"
 
-    # Doğru repo URL'sini seç
+    # Doğru Zabbix repo .deb URL'sini seç
     - name: Uygun repo URL'sini belirle
       ansible.builtin.set_fact:
         zabbix_repo_deb: >-
@@ -34,18 +34,18 @@
           {{ zabbix_repo_deb_ubuntu20 }}
           {% endif %}
 
-    # Kurulu paketleri oku
+    # Mevcut paket listesini oku
     - name: Kurulu paketleri oku
       ansible.builtin.package_facts:
         manager: auto
 
-    # Zaten kurulu ise bilgi ver
+    # Agent zaten kuruluysa bilgi ver
     - name: Agent2 zaten kurulu mesajı
       ansible.builtin.debug:
         msg: "Zabbix Agent2 zaten kurulu!"
       when: zabbix_agent_pkg in ansible_facts.packages
 
-    # Agent yoksa kur
+    # Agent yoksa repo + kurulum
     - name: Agent2 yoksa repo + kurulum yap
       block:
 
@@ -58,10 +58,10 @@
         - name: Repo paketini dpkg ile kur
           ansible.builtin.command: "dpkg -i /tmp/zabbix-release.deb"
 
-        - name: apt-get update
+        - name: apt cache güncelle (postgres repo hatalarını yok say)
           ansible.builtin.apt:
             update_cache: yes
-	  ignore_errors: yes
+          ignore_errors: yes
 
         - name: Zabbix Agent2 paketini kur
           ansible.builtin.package:
@@ -78,9 +78,9 @@
         owner: root
         group: root
         mode: "0644"
-      # YORUM: burası düzenlenecek
+      # YORUM: buralar düzenlenecek
 
-    # Servisi başlat
+    # Servisi enable + restart et
     - name: Servisi enable + restart et
       ansible.builtin.systemd:
         name: "{{ zabbix_agent_service }}"
