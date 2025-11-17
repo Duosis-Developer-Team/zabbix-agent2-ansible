@@ -61,6 +61,7 @@
         - name: apt-get update
           ansible.builtin.apt:
             update_cache: yes
+	  ignore_errors: yes
 
         - name: Zabbix Agent2 paketini kur
           ansible.builtin.package:
