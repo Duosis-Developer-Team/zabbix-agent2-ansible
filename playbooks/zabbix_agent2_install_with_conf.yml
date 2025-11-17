@@ -44,38 +44,34 @@
         msg: "Zabbix Agent2 zaten kurulu!"
       when: zabbix_agent_pkg in ansible_facts.packages
 
-    - name: Agent2 yoksa repo + kurulum yap
-      block:
+   - name: Agent2 yoksa repo + kurulum yap
+  block:
 
-        # 1) Repo .deb indir
-        - name: Zabbix repo .deb indir
-          ansible.builtin.get_url:
-            url: "{{ zabbix_repo_deb }}"
-            dest: "/tmp/zabbix-release.deb"
-            mode: "0644"
-          when: zabbix_agent_pkg not in ansible_facts.packages
-
-        # 2) dpkg ile repo paketi kur
-        - name: Zabbix repo paketini dpkg ile kur
-          ansible.builtin.command: "dpkg -i /tmp/zabbix-release.deb"
-          args:
-            warn: false
-          when: zabbix_agent_pkg not in ansible_facts.packages
-
-        # 3) apt update
-        - name: apt-get update
-          ansible.builtin.apt:
-            update_cache: yes
-          when: zabbix_agent_pkg not in ansible_facts.packages
-
-        # 4) Agent2 paketini kur
-        - name: Zabbix Agent2 paketini kur
-          ansible.builtin.package:
-            name: "{{ zabbix_agent_pkg }}"
-            state: present
-          when: zabbix_agent_pkg not in ansible_facts.packages
-
+    - name: Zabbix repo .deb indir
+      ansible.builtin.get_url:
+        url: "{{ zabbix_repo_deb }}"
+        dest: "/tmp/zabbix-release.deb"
+        mode: "0644"
       when: zabbix_agent_pkg not in ansible_facts.packages
+
+    - name: Repo paketini dpkg ile kur
+      ansible.builtin.command: "dpkg -i /tmp/zabbix-release.deb"
+      when: zabbix_agent_pkg not in ansible_facts.packages
+
+    - name: apt-get update
+      ansible.builtin.apt:
+        update_cache: yes
+      when: zabbix_agent_pkg not in ansible_facts.packages
+
+    - name: Zabbix Agent2 paketini kur
+      ansible.builtin.package:
+        name: "{{ zabbix_agent_pkg }}"
+        state: present
+      when: zabbix_agent_pkg not in ansible_facts.packages
+
+  when: zabbix_agent_pkg not in ansible_facts.packages
+
+
 
     # 5) Hazır conf dosyasını kopyala
     - name: zabbix_agent2.conf’ı kopyala
