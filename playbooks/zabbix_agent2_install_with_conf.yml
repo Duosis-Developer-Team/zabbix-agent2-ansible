@@ -6,7 +6,7 @@
 
   vars:
     # Ubuntu 20.04 için Zabbix 6.0 repo paketi
-    zabbix_repo_deb_ubuntu20: "https://repo.zabbix.com/zabbix/6.0/ubuntu/pool/main/z/zabbix-release/zabbix-release_6.0-1+ubuntu20.04_all.deb"
+    zabbix_repo_deb_ubuntu20: "https://repo.zabbix.com/zabbix/6.0/ubuntu/pool/main/z/zabbix-release/zabbix-release_latest_6.0+ubuntu20.04_all.deb"
 
     # Ubuntu 22.04 için Zabbix 7.0 repo paketi (ileride ihtiyaç olursa)
     zabbix_repo_deb_ubuntu22: "https://repo.zabbix.com/zabbix/7.0/ubuntu/pool/main/z/zabbix-release/zabbix-release_7.0-2+ubuntu22.04_all.deb"
